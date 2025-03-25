@@ -21,6 +21,8 @@ struct LandingPageButton: ButtonStyle {
 }
 
 struct InfoPage: View {
+    @EnvironmentObject var appValues: AppValues
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -63,46 +65,155 @@ struct LandingPage: View {
     @State var plot: Plot10 = Plot10(plotID: "New_Plot_\(Date().toString(withFormat: "(mm-hh_dd-MM-yyyy)"))", location: .init(latitude: 44.365658, longitude: -69.793207))
     
     @State var filePath: URL? = nil
+    @State var message: String? = nil
     
     @EnvironmentObject var appValues: AppValues
     
-//    @ViewBuilder var newPlotSheet: some View {  }
-
+    //    @ViewBuilder var newPlotSheet: some View {  }
+    
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
             NavigationStack {
-                VStack(spacing: 24) {
-                    Text("Welcome to the FERN Log!")
-                        .font(Font.custom("PlayfairDisplay-Bold", size: 48, relativeTo: .largeTitle))
-                        .foregroundStyle(.cardTitle)
-                    VStack(spacing: 16) {
-                        HStack(spacing: 16) {
-                            Button("Open", systemImage: "folder") { importing = true }
-                                .fileImporter(isPresented: $importing, allowedContentTypes: [.folder]) { result in
-                                    switch result {
-                                    case .success(let success): filePath = success
-                                        print(success)
-                                        plot = .init(url: success) ?? plot
-                                        new = true
-                                    case .failure(let failure): print(failure)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("Welcome to the FERN Log!")
+                            .font(Font.custom("PlayfairDisplay-Bold", size: 48, relativeTo: .largeTitle))
+                            .foregroundStyle(.cardTitle)
+                        VStack(spacing: 0) {
+                            Text("PLOTS")
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .foregroundStyle(.white)
+                                .font(.headline)
+                                .padding(16)
+                                .background(.green2, in: RoundedCorner(radius: 16, corners: [.topRight, .topLeft]))
+                            VStack(alignment: .leading, spacing: 0) {
+                                ForEach(appValues.plots) { data in
+                                    Button {
+                                        appValues.appStatus = .loading
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                            appValues.appStatus = nil
+                                            appValues.selectedPlot = data.id
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text(data.plotID).padding(16)
+                                            Spacer()
+                                        }
+                                    }
+                                    if data.id != appValues.plots.last?.id {
+                                        Divider()
                                     }
                                 }
-                            Button("New", systemImage: "plus") {
-                                withAnimation(.snappy) {
-                                    new = true
-                                }
                             }
+                            .buttonStyle(ListRow())
+                            .background {
+                                RoundedCorner(radius: 16, corners: [.bottomLeft, .bottomRight])
+                                    .fill(Color(.secondarySystemGroupedBackground))
+                                RoundedCorner(radius: 16, corners: [.bottomLeft, .bottomRight])
+                                    .stroke(Color(.systemFill))
+                                    .padding(.horizontal, 0.5)
+                            }
+                            .fileImporter(isPresented: $importing, allowedContentTypes: [.folder]) { result in
+                                switch result {
+                                case .success(let success): filePath = success
+                                    print(success)
+                                    if let p = Plot10(url: success) {
+                                        plot = p
+                                        new = true
+                                    } else {
+                                        appValues.appStatus = .welcome
+                                        message = "We had trouble reading the info in this file."
+                                    }
+                                case .failure(let failure): print(failure)
+                                }
+                                appValues.appStatus = .welcome
+                            }
+                            .alert(message ?? "Error!", isPresented: .init(get: { message != nil }, set: { _ in message = nil })) {
+                                Button("OK") { message = nil }
+                            }
+                            Menu {
+                                Button("Empty Plot", systemImage: "square") {
+                                    plot = Plot10(plotID: "New_Plot_\(Date().toString(withFormat: "(mm-hh_dd-MM-yyyy)"))", location: .init(latitude: 44.365658, longitude: -69.793207))
+                                    withAnimation(.snappy) {
+                                        new = true
+                                    }
+                                }
+                                Button("Import From Folder", systemImage: "folder") {
+                                    appValues.appStatus = .loading
+                                    importing = true
+                                }
+                                Divider()
+                                Button("Demo Plot", systemImage: "questionmark.square") {
+                                    appValues.appStatus = .loading
+                                    appValues.plots.append(
+                                        Plot10(
+                                            forms: [
+                                                OverstoryForm(steward: "Andre", location: nil, data: [
+                                                    .init(treeID: "001", treeSpecies: "Oak", treeStatus: .live, dbh: 0, height: 10),
+                                                    .init(treeID: "002", treeSpecies: "Birch", treeStatus: .live, dbh: 0, height: 10),
+                                                    .init(treeID: "003", treeSpecies: "Pine", treeStatus: .live, dbh: 0, height: 10),
+                                                ]),
+                                                SnagsForm(steward: "Andre", location: nil, data: [
+                                                    .init(treeID: "001", treeSpecies: "Oak", treeStatus: .downed, dbh: 0, height: 10),
+                                                    .init(treeID: "002", treeSpecies: "Birch", treeStatus: .downed, dbh: 0, height: 10),
+                                                    .init(treeID: "003", treeSpecies: "Pine", treeStatus: .downed, dbh: 0, height: 10),
+                                                ]),
+                                                WildlifeForm(steward: "Andre", location: nil),
+                                                HardwoodPhenologyForm(steward: "Andre", location: nil, treeID: "001"),
+                                                SoftwoodPhenologyForm(steward: "Andre", location: nil, treeID: "002"),
+                                                InvasiveSpeciesForm(steward: "Andre", location: nil, data: [
+                                                    .init(species: "Mint", direction: 50.539, distance: 20, heightClass: 1, area: 6),
+                                                    .init(species: "Japanese Knotweed", direction: 20.2, distance: 4, heightClass: 3, area: 14)
+                                                ]),
+                                                TreeHealthForm(steward: "Glen", location: nil, data: [
+                                                    .init(treeID: "001", treeSpecies: "Ash", crownDamageType: .branches, crownDamagePercent: 2, boleDamageType: .insect, boleDamagePercent: 1)
+                                                ]),
+                                                //            TrailCameraForm(steward: "Glen", location: nil, data: [
+                                                //                .init(imageUrl: URL(fileURLWithPath: ""), wildlife: "Deer"),
+                                                //                .init(imageUrl: nil, wildlife: "Kaleb")
+                                                //            ]),
+                                                
+                                                SaplingsForm(steward: "Glen", location: nil, data: [
+                                                    .init(treeSpecies: "Ash")
+                                                ]),
+                                                
+                                                SeedlingsForm(steward: "Glen", location: .init(latitude: 0, longitude: 0), data: [
+                                                    .init(direction: .north, treeSpecies: "Red Oak"),
+                                                    .init(direction: .west, treeSpecies: "White Oak"),
+                                                    .init(direction: .north, treeSpecies: "Yellow Oak"),
+                                                    .init(direction: .south, treeSpecies: "Birch")
+                                                ]),
+                                                
+                                                DebrisForm(steward: "Glen", location: .init(latitude: 0, longitude: 0), data: [
+                                                    .init(transect: 120, diameter: 3, decayClass: 3, species: "Oak")
+                                                ])
+                                            ],
+                                            plotID: "Demo Plot",
+                                            location: .init(latitude: 44.365658, longitude: -69.793207)))
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                        appValues.appStatus = nil
+                                        appValues.selectedPlot = appValues.plots.last!.id
+                                    }
+                                }
+                            } label: {
+                                Label("Add New", systemImage: "plus")
+                                    .frame(maxWidth: .infinity)
+                                    .padding(16)
+                                    .background {
+                                        RoundedCorner(corners: appValues.plots.isEmpty ? [.bottomLeft, .bottomRight] : .allCorners)
+                                            .fill(Color(.secondarySystemGroupedBackground))
+                                        RoundedCorner(corners: appValues.plots.isEmpty ? [.bottomLeft, .bottomRight] : .allCorners)
+                                            .stroke(Color(.systemFill))
+                                            .padding(.horizontal, 0.5)
+                                    }
+                            }
+                            .buttonStyle(ListRow())
+                            .padding(.top, appValues.plots.isEmpty ? 0 : nil)
                         }
-                        NavigationLink {
-                            InfoPage()
-                        } label: { Label("Info", systemImage: "info.circle") }
                     }
-                    .frame(width: 300)
-                    .buttonStyle(LandingPageButton())
-                    .padding(16)
-                    .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .circular))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                    .padding(24)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(.fernCream0)
             }
             VStack(spacing: 0) {
@@ -125,7 +236,7 @@ struct LandingPage: View {
                 .frame(height: !new ? 0 : nil, alignment: .top)
                 VStack(alignment: .leading, spacing: 16) {
                     Button {
-//                        appValues.plots.append(plot)
+                        appValues.plots.append(plot)
                         appValues.appStatus = .loading
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                             appValues.appStatus = nil
@@ -181,14 +292,16 @@ struct LandingPage: View {
                     .fill(Material.regular.secondary)
                     .shadow(color: .black.opacity(0.1), radius: 8)
             }
-            .padding(.top, 24)
+            .padding(.top, 102)
             .offset(x: -24, y: !new ? 24 : 0)
             .ignoresSafeArea()
         }
-        .toolbarVisibility(.hidden, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                NavigationLink {
+                    InfoPage()
+                } label: { Label("Info", systemImage: "info.circle") }
+            }
+        }
     }
-}
-
-#Preview {
-    LandingPage()
 }

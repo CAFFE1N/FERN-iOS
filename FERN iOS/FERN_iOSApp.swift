@@ -25,7 +25,6 @@ struct FERN_iOSApp: App {
                         LandingPage()
                     }
                 }
-                .disabled(appValues.appStatus == .loading)
                 if appValues.appStatus == .loading {
                     Rectangle()
                         .fill(Color.black.opacity(0.25))
@@ -78,55 +77,7 @@ struct TreeSpeciesMenu: View {
 }
 
 class AppValues: ObservableObject {
-    @Published var plots: [Plot10] = [
-        
-        Plot10(
-            forms: [
-                OverstoryForm(steward: "Andre", location: nil, data: [
-                    .init(treeID: "001", treeSpecies: "Oak", treeStatus: .live, dbh: 0, height: 10),
-                    .init(treeID: "002", treeSpecies: "Birch", treeStatus: .live, dbh: 0, height: 10),
-                    .init(treeID: "003", treeSpecies: "Pine", treeStatus: .live, dbh: 0, height: 10),
-                ]),
-                SnagsForm(steward: "Andre", location: nil, data: [
-                    .init(treeID: "001", treeSpecies: "Oak", treeStatus: .downed, dbh: 0, height: 10),
-                    .init(treeID: "002", treeSpecies: "Birch", treeStatus: .downed, dbh: 0, height: 10),
-                    .init(treeID: "003", treeSpecies: "Pine", treeStatus: .downed, dbh: 0, height: 10),
-                ]),
-                WildlifeForm(steward: "Andre", location: nil),
-                HardwoodPhenologyForm(steward: "Andre", location: nil, treeID: "001"),
-                SoftwoodPhenologyForm(steward: "Andre", location: nil, treeID: "002"),
-                InvasiveSpeciesForm(steward: "Andre", location: nil, data: [
-                    .init(species: "Mint", direction: 50.539, distance: 20, heightClass: 1, area: 6),
-                    .init(species: "Japanese Knotweed", direction: 20.2, distance: 4, heightClass: 3, area: 14)
-                ]),
-                TreeHealthForm(steward: "Glen", location: nil, data: [
-                    .init(treeID: "001", treeSpecies: "Ash", crownDamageType: .branches, crownDamagePercent: 2, boleDamageType: .insect, boleDamagePercent: 1)
-                ]),
-                //            TrailCameraForm(steward: "Glen", location: nil, data: [
-                //                .init(imageUrl: URL(fileURLWithPath: ""), wildlife: "Deer"),
-                //                .init(imageUrl: nil, wildlife: "Kaleb")
-                //            ]),
-                
-                SaplingsForm(steward: "Glen", location: nil, data: [
-                    .init(treeSpecies: "Ash")
-                ]),
-                
-                SeedlingsForm(steward: "Glen", location: .init(latitude: 0, longitude: 0), data: [
-                    .init(direction: .north, treeSpecies: "Red Oak"),
-                    .init(direction: .west, treeSpecies: "White Oak"),
-                    .init(direction: .north, treeSpecies: "Yellow Oak"),
-                    .init(direction: .south, treeSpecies: "Birch")
-                ]),
-                
-                DebrisForm(steward: "Glen", location: .init(latitude: 0, longitude: 0), data: [
-                    .init(transect: 120, diameter: 3, decayClass: 3, species: "Oak")
-                ])
-            ],
-            plotID: "Test Plot #0",
-            location: .init(latitude: 43.53060, longitude: -70.52005))
-         
-//        Plot10(plotID: "Plot #0", location: PlotLocation(latitude: 43.53060, longitude: -70.52005))
-    ]
+    @Published var plots: [Plot10] = []
     
     enum AppStatus: String, CaseIterable { case loading, welcome }
     @Published var appStatus: AppStatus? = .welcome
