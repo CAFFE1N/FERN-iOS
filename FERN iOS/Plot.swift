@@ -170,16 +170,16 @@ struct PlotCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 HStack {
                     RoundedRectangle(cornerRadius: 4, style: .circular)
-                        .fill(.tumeric0)
+                        .fill(.skyBlue1)
                         .frame(width: 24, height: 24)
                     Text("1/1000th")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 HStack {
                     RoundedRectangle(cornerRadius: 4, style: .circular)
-                        .fill(.skyBlue1)
+                        .fill(.tumeric0)
                         .frame(width: 24, height: 24)
-                    Text("Transect Line")
+                    Text("Transect Lines")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }

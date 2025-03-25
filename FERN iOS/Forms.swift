@@ -407,9 +407,9 @@ struct FormView<F: PlotForm>: View {
                     .fill(Material.regular.secondary)
                     .shadow(color: .black.opacity(0.1), radius: 8)
             }
-            .padding(.top, 102)
+            .padding(.top, 24)
             .offset(x: -24, y: form.selected == nil ? 24 : 0)
-            .ignoresSafeArea()
+            .ignoresSafeArea(.container)
         }
         .onDisappear { form.selected = nil }
         .alert("Are you sure you want to delete this entry?", isPresented: $alertPresented) {
