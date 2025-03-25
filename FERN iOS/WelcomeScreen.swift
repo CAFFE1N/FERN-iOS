@@ -62,9 +62,11 @@ struct LandingPage: View {
     @State var importing: Bool = false
     
     @State var new = false
-    @State var plot: Plot10 = Plot10(plotID: "New_Plot_\(Date().toString(withFormat: "(mm-hh_dd-MM-yyyy)"))", location: .init(latitude: 44.365658, longitude: -69.793207))
+    @State var plot: Plot10 = Plot10(plotID: "Plot \(Date().toString(withFormat: "dd.MM.yyyy"))", location: .init(latitude: 44.365658, longitude: -69.793207))
     
     @State var filePath: URL? = nil
+    
+    @State var deletionAlert: Bool = false
     @State var message: String? = nil
     
     @EnvironmentObject var appValues: AppValues
@@ -76,9 +78,15 @@ struct LandingPage: View {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        Text("Welcome to the FERN Log!")
-                            .font(Font.custom("PlayfairDisplay-Bold", size: 48, relativeTo: .largeTitle))
-                            .foregroundStyle(.cardTitle)
+                        HStack {
+                            Text("Welcome to the FERN Log!")
+                                .font(Font.custom("PlayfairDisplay-Bold", size: 48, relativeTo: .largeTitle))
+                                .foregroundStyle(.cardTitle)
+                            Spacer()
+                            NavigationLink {
+                                InfoPage()
+                            } label: { Label("", systemImage: "info.circle").imageScale(.large) }
+                        }
                         VStack(spacing: 0) {
                             Text("PLOTS")
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -100,9 +108,31 @@ struct LandingPage: View {
                                             Spacer()
                                         }
                                     }
+                                    .contextMenu {
+                                        Button("Delete", systemImage: "trash", role: .destructive) {
+                                            deletionAlert = true
+                                            appValues.selectedPlot = data.id
+                                        }
+                                    } preview: {
+                                        Text(data.plotID).padding(16)
+                                            .background(Color(.secondarySystemGroupedBackground))
+                                    }
                                     if data.id != appValues.plots.last?.id {
                                         Divider()
                                     }
+                                }
+                            }
+                            .alert("Are you sure you want to delete this plot?", isPresented: $deletionAlert) {
+                                Button("Cancel", role: .cancel) { deletionAlert = false }
+                                Button("Delete", systemImage: "trash", role: .destructive) {
+                                    appValues.appStatus = .loading
+                                        withAnimation(.snappy) {
+                                            appValues.plots.removeAll(where: { $0.id == appValues.selectedPlot })
+                                        } completion: {
+                                            deletionAlert = false
+                                            appValues.selectedPlot = nil
+                                            appValues.appStatus = .welcome
+                                        }
                                 }
                             }
                             .buttonStyle(ListRow())
@@ -133,7 +163,7 @@ struct LandingPage: View {
                             }
                             Menu {
                                 Button("Empty Plot", systemImage: "square") {
-                                    plot = Plot10(plotID: "New_Plot_\(Date().toString(withFormat: "(mm-hh_dd-MM-yyyy)"))", location: .init(latitude: 44.365658, longitude: -69.793207))
+                                    plot = Plot10(plotID: "Plot \(Date().toString(withFormat: "dd.MM.yyyy"))", location: .init(latitude: 44.365658, longitude: -69.793207))
                                     withAnimation(.snappy) {
                                         new = true
                                     }
@@ -262,15 +292,16 @@ struct LandingPage: View {
                                     DoubleField("", value: $plot.location.longitude, float: 8)
                                 }
                             }
-                            PlotMap(location: plot.location, plotID: plot.plotID, bw: true)
-                                .frame(maxHeight: .infinity)
-                                .clipShape(RoundedRectangle(cornerRadius: 4, style: .circular))
-                                .disabled(true)
+//                            PlotMap(location: plot.location, plotID: plot.plotID, bw: true)
+//                                .frame(maxHeight: .infinity)
+//                                .clipShape(RoundedRectangle(cornerRadius: 4, style: .circular))
+//                                .disabled(true)
                             Divider()
                             Text("All fields are required.")
                                 .font(Font.custom("AvenirLTStd-Roman", size: 14, relativeTo: .caption).italic())
                                 .foregroundStyle(.cardText)
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                            Spacer()
                         }
                     }
                     .padding(16)
@@ -296,12 +327,6 @@ struct LandingPage: View {
             .offset(x: -24, y: !new ? 24 : 0)
             .ignoresSafeArea()
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink {
-                    InfoPage()
-                } label: { Label("Info", systemImage: "info.circle") }
-            }
-        }
+        .toolbarVisibility(.hidden, for: .navigationBar)
     }
 }

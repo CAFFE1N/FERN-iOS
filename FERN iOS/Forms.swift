@@ -414,7 +414,7 @@ struct FormView<F: PlotForm>: View {
         .onDisappear { form.selected = nil }
         .alert("Are you sure you want to delete this entry?", isPresented: $alertPresented) {
             Button("Cancel", role: .cancel) { alertPresented = false }
-            Button(role: .destructive) {
+            Button("Delete", systemImage: "trash", role: .destructive) {
                 if let selected = form.selected {
                     withAnimation(.snappy) {
                         form.selected = nil
@@ -428,8 +428,6 @@ struct FormView<F: PlotForm>: View {
                         }
                     }
                 }
-            } label: {
-                Label("Delete", systemImage: "trash")
             }
         }
     }

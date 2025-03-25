@@ -9,14 +9,7 @@ import SwiftUI
 import MapKit
 import UniformTypeIdentifiers
 
-protocol Plot: Identifiable, ObservableObject, Hashable, Equatable {
-    var id: UUID { get }
-}
-extension Plot {
-    func hash(into hasher: inout Hasher) { hasher.combine(id) }
-}
-
-class Plot10: Plot {
+class Plot10: Identifiable, ObservableObject, Hashable, Equatable {
     convenience init?(url: URL?) {
         guard let url = url else { return nil }
         
@@ -80,7 +73,8 @@ class Plot10: Plot {
     }
     
     let id: UUID = UUID()
-    
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+
     convenience init?(from values: [(csvString: String, info: String)], info: String) {
         let values = values.map({ FormFrom($0.csvString, info: $0.info) })
         guard !values.contains(where: { $0 == nil }), let v = values.filter({ $0 != nil }) as? [any PlotForm] else { return nil }
@@ -136,7 +130,7 @@ extension Plot10 {
     
     func wrapToFolder() -> URL {
         let fileManager = FileManager.default
-        let tempDir = fileManager.temporaryDirectory.appendingPathComponent(self.plotID, isDirectory: true)
+        let tempDir = fileManager.temporaryDirectory.appendingPathComponent(self.plotID.trimmingCharacters(in: .whitespacesAndNewlines), isDirectory: true)
         try? fileManager.createDirectory(at: tempDir, withIntermediateDirectories: true)
         
         saveTextFile(at: tempDir, fileName: "Info.txt", content: self.info)
@@ -148,7 +142,6 @@ extension Plot10 {
             saveTextFile(at: subfolder, fileName: "Info.txt", content: i.1.info)
             saveTextFile(at: subfolder, fileName: "Content.csv", content: i.1.csv)
         }
-        
         return tempDir
     }
 }
@@ -161,48 +154,13 @@ struct ShareView: View {
     }
 }
 
-
-class Plot50: Plot {
-    init(saplingsForm: SaplingsForm) {
-        self.saplingsForm = saplingsForm
-    }
-    
-    static func == (lhs: Plot50, rhs: Plot50) -> Bool { lhs.id == rhs.id }
-    
-    let id: UUID = UUID()
-    
-    @Published var saplingsForm: SaplingsForm
-}
-
-class Plot1000: Plot {
-    init(form: SeedlingsForm) {
-        self.form = form
-    }
-    
-    static func == (lhs: Plot1000, rhs: Plot1000) -> Bool { lhs.id == rhs.id }
-    
-    let id: UUID = UUID()
-    
-    @Published var form: SeedlingsForm
-}
-
-class TransectLine: Identifiable, ObservableObject {
-    init(form: DebrisForm) {
-        self.form = form
-    }
-    
-    var id: UUID = UUID()
-    
-    @Published var form: DebrisForm
-}
-
 struct PlotCard: View {
     var body: some View {
         VStack(spacing: 16) {
             PlotSymbol()
                 .padding(.horizontal, 48)
+                .padding(.vertical, -8)
             Divider()
-                .padding(.bottom, 24)
             VStack(alignment: .leading, spacing: 16) {
                 HStack {
                     RoundedRectangle(cornerRadius: 4, style: .circular)
@@ -280,13 +238,13 @@ struct HelpTable: View {
 struct PlotView: View {
     @EnvironmentObject var appValues: AppValues
     @ObservedObject var plot: Plot10
-        
+    
     enum Selected {
         case map
         case form(Int)
     }
     @State var selected: Selected?
-        
+    
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 24) {
@@ -388,9 +346,30 @@ struct PlotView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .circular))
                         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .circular))
                     }
-                    PlotDataWeb(plot: plot)
                     HStack(alignment: .top, spacing: 24) {
-                        HelpTable()
+                        VStack(spacing: 24) {
+                            PlotDataWeb(plot: plot)
+                            NavigationLink {
+                                InfoPage()
+                            } label: {
+                                HStack {
+                                    Label("Info", systemImage: "info.circle")
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(16)
+                                .background {
+                                    RoundedCorner(corners: appValues.plots.isEmpty ? [.bottomLeft, .bottomRight] : .allCorners)
+                                        .fill(Color(.secondarySystemGroupedBackground))
+                                    RoundedCorner(corners: appValues.plots.isEmpty ? [.bottomLeft, .bottomRight] : .allCorners)
+                                        .stroke(Color(.systemFill))
+                                        .padding(.horizontal, 0.5)
+                                }
+                                .tint(.primary)
+                            }
+                        }
                         PlotCard()
                     }
                 }
