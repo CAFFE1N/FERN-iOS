@@ -146,14 +146,6 @@ extension Plot10 {
     }
 }
 
-struct ShareView: View {
-    let folderURL: URL
-    
-    var body: some View {
-        ShareLink(item: folderURL, preview: SharePreview("Transferable Data", image: Image(systemName: "folder.fill")))
-    }
-}
-
 struct PlotCard: View {
     var body: some View {
         VStack(spacing: 16) {
@@ -195,43 +187,6 @@ struct PlotCard: View {
         .frame(width: 300)
         .padding(16)
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .circular))
-    }
-}
-
-struct HelpTable: View {
-    private let data: [String] = ["data", "I"]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .top, spacing: 25) {
-                Text("HELP + INFO")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .foregroundStyle(.white)
-            .font(.headline)
-            .padding(16)
-            .background(.green2, in: RoundedCorner(radius: 16, corners: [.topRight, .topLeft]))
-            ForEach(data, id: \.self) { data in
-                Button {
-                    withAnimation(.snappy) {
-                    }
-                } label: {
-                    Text(data).padding(16)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                if data != self.data.last {
-                    Divider()
-                }
-            }
-        }
-        .buttonStyle(ListRow())
-        .background {
-            RoundedRectangle(cornerRadius: 16, style: .circular)
-                .fill(Color(.secondarySystemGroupedBackground))
-            RoundedRectangle(cornerRadius: 16, style: .circular)
-                .stroke(Color(.systemFill))
-                .padding(.horizontal, 0.5)
-        }
     }
 }
 

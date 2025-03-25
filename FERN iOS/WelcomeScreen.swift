@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UniformTypeIdentifiers
+import PDFKit
 
 struct LandingPageButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -20,6 +21,62 @@ struct LandingPageButton: ButtonStyle {
     }
 }
 
+struct PDFKitView: UIViewRepresentable {
+    let url: URL
+    
+    func makeUIView(context: Context) -> PDFView {
+        let pdfView = PDFView()
+        pdfView.document = PDFDocument(url: self.url)
+        pdfView.autoScales = true
+        return pdfView
+    }
+    
+    func updateUIView(_ pdfView: PDFView, context: Context) {
+        // Update pdf if needed
+    }
+}
+
+struct HelpTable: View {
+    private let data: [(String, URL)] = [("FERN Introduction", Bundle.main.url(forResource: "1aFERNIntroduction", withExtension: "pdf")!), ("FERN Toolkit", Bundle.main.url(forResource: "1bEstbalishingFERNPlot", withExtension: "pdf")!), ("Establishing a FERN Plot", Bundle.main.url(forResource: "1cFERNToolkit", withExtension: "pdf")!)]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top, spacing: 25) {
+                Text("HELP + INFO")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .foregroundStyle(.white)
+            .font(.headline)
+            .padding(16)
+            .background(.green2, in: RoundedCorner(radius: 16, corners: [.topRight, .topLeft]))
+            ForEach(data, id: \.0) { data in
+                NavigationLink {
+                        PDFKitView(url: data.1)
+                } label: {
+                    HStack {
+                        Text(data.0)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(16)
+                }
+                if data.0 != self.data.last?.0 {
+                    Divider()
+                }
+            }
+        }
+        .buttonStyle(ListRow())
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .circular)
+                .fill(Color(.secondarySystemGroupedBackground))
+            RoundedRectangle(cornerRadius: 16, style: .circular)
+                .stroke(Color(.systemFill))
+                .padding(.horizontal, 0.5)
+        }
+    }
+}
+
 struct InfoPage: View {
     @EnvironmentObject var appValues: AppValues
     
@@ -29,7 +86,6 @@ struct InfoPage: View {
                 Text("Info")
                     .font(Font.custom("PlayfairDisplay-Bold", size: 48, relativeTo: .largeTitle))
                     .foregroundStyle(.cardTitle)
-                HelpTable()
                 VStack(spacing: 24) {
                     Image("FERN Logo 1")
                         .resizable()
@@ -49,6 +105,7 @@ Glen says: May your journies on the trail be Prosperous!
                 .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .circular))
 //                .padding(.vertical, 64)
                 .frame(maxWidth: .infinity)
+                HelpTable()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .padding(24)
