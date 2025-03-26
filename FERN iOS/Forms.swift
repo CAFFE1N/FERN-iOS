@@ -407,7 +407,7 @@ struct FormView<F: PlotForm>: View {
                     .fill(Material.regular.secondary)
                     .shadow(color: .black.opacity(0.1), radius: 8)
             }
-            .padding(.top, 24)
+            .padding(.top, 102)
             .offset(x: -24, y: form.selected == nil ? 24 : 0)
             .ignoresSafeArea(.container)
         }

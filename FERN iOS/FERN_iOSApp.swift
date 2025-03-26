@@ -40,6 +40,9 @@ struct FERN_iOSApp: App {
                 }
             }
             .environmentObject(appValues)
+            .onChange(of: appValues.plots) { oldValue, newValue in
+                //                print()
+            }
         }
     }
 }
@@ -77,6 +80,15 @@ struct TreeSpeciesMenu: View {
 }
 
 class AppValues: ObservableObject {
+    init() {
+//        if UserDefaults.standard.dictionaryRepresentation().keys.contains("group.fern.app") {
+//            print("already joined")
+//        } else {
+            UserDefaults.standard.addSuite(named: "group.fern.app")
+//        }
+        print(UserDefaults.standard.dictionaryRepresentation().keys)
+    }
+    
     @Published var plots: [Plot10] = []
     
     enum AppStatus: String, CaseIterable { case loading, welcome }
