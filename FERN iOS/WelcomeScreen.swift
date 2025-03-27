@@ -37,7 +37,7 @@ struct PDFKitView: UIViewRepresentable {
 }
 
 struct HelpTable: View {
-    private let data: [(String, URL)] = [("FERN Introduction", Bundle.main.url(forResource: "1aFERNIntroduction", withExtension: "pdf")!), ("FERN Toolkit", Bundle.main.url(forResource: "1bEstbalishingFERNPlot", withExtension: "pdf")!), ("Establishing a FERN Plot", Bundle.main.url(forResource: "1cFERNToolkit", withExtension: "pdf")!)]
+    private let data: [(String, URL)] = [("FERN Introduction", Bundle.main.url(forResource: "1aFERNIntroduction", withExtension: "pdf")!), ("FERN Toolkit", Bundle.main.url(forResource: "1bEstbalishingFERNPlot", withExtension: "pdf")!), ("Establishing a FERN Plot", Bundle.main.url(forResource: "1cFERNToolkit", withExtension: "pdf")!), ("FERN Log User Guide", Bundle.main.url(forResource: "FERNLogUserGuide", withExtension: "pdf")!)]
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -235,21 +235,23 @@ struct LandingPage: View {
                                     appValues.plots.append(
                                         Plot10(
                                             forms: [
-                                                OverstoryForm(steward: "Andre", location: nil, data: [
-                                                    .init(treeID: "001", treeSpecies: "Oak", treeStatus: .live, dbh: 0, height: 10),
-                                                    .init(treeID: "002", treeSpecies: "Birch", treeStatus: .live, dbh: 0, height: 10),
-                                                    .init(treeID: "003", treeSpecies: "Pine", treeStatus: .live, dbh: 0, height: 10),
+                                                OverstoryForm(steward: "André", location: nil, data: [
+                                                    .init(treeID: "001", treeSpecies: "Pine", treeStatus: .live, dbh: 5, height: 40),
+                                                    .init(treeID: "002", treeSpecies: "Pine", treeStatus: .dead_downed, dbh: 0, height: 45.5),
+                                                    .init(treeID: "003", treeSpecies: "Pine", treeStatus: .dead_standing, dbh: 5.5, height: 40),
+                                                    .init(treeID: "004", treeSpecies: "Pine", treeStatus: .dead_harvested, dbh: 0, height: 50)
                                                 ]),
-                                                SnagsForm(steward: "Andre", location: nil, data: [
-                                                    .init(treeID: "001", treeSpecies: "Oak", treeStatus: .downed, dbh: 0, height: 10),
-                                                    .init(treeID: "002", treeSpecies: "Birch", treeStatus: .downed, dbh: 0, height: 10),
-                                                    .init(treeID: "003", treeSpecies: "Pine", treeStatus: .downed, dbh: 0, height: 10),
+                                                SnagsForm(steward: "André", location: nil, data: [
+                                                    .init(treeID: "005", treeSpecies: "Pine", treeStatus: .complete_crown, dbh: 5, height: 40),
+                                                    .init(treeID: "006", treeSpecies: "Pine", treeStatus: .damaged_crown, dbh: 0, height: 45),
+                                                    .init(treeID: "007", treeSpecies: "Pine", treeStatus: .missing_crown, dbh: 5.5, height: 40),
+                                                    .init(treeID: "008", treeSpecies: "Pine", treeStatus: .downed, dbh: 0, height: 50)
                                                 ]),
-                                                WildlifeForm(steward: "Andre", location: nil),
-                                                HardwoodPhenologyForm(steward: "Andre", location: nil, treeID: "001"),
-                                                SoftwoodPhenologyForm(steward: "Andre", location: nil, treeID: "002"),
-                                                InvasiveSpeciesForm(steward: "Andre", location: nil, data: [
-                                                    .init(species: "Mint", direction: 50.539, distance: 20, heightClass: 1, area: 6),
+                                                WildlifeForm(steward: "André", location: nil),
+                                                HardwoodPhenologyForm(steward: "André", location: nil, treeID: "001"),
+                                                SoftwoodPhenologyForm(steward: "André", location: nil, treeID: "002"),
+                                                InvasiveSpeciesForm(steward: "Glen", location: nil, data: [
+                                                    .init(species: "Mint", direction: 50.539, distance: 20, heightClass: 1, area: 6.85),
                                                     .init(species: "Japanese Knotweed", direction: 20.2, distance: 4, heightClass: 3, area: 14)
                                                 ]),
                                                 TreeHealthForm(steward: "Glen", location: nil, data: [

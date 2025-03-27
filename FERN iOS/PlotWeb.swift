@@ -149,7 +149,7 @@ struct PlotDataWeb: View {
                     FormView(form: plot.treeHealth)
                 } label: {
                     HStack {
-                        Text("Tree Health")
+                        Text("Forest Health")
                         Spacer()
                         Image(systemName: "chevron.right")
                             .foregroundStyle(.tertiary)

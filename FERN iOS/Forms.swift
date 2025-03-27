@@ -724,6 +724,19 @@ class SnagsForm: Plot10Form {
                 DataEditorField(label: "HEIGHT (FEET)") {
                     DoubleField("", value: selectedData.height)
                 }
+                Rectangle()
+                    .fill(Color(.secondarySystemFill))
+                    .frame(height: 1)
+                Text("""
+    If you completed the Overstory activity for this plot, you may have already collected some data on snags. Here, we collect additional data on each snag, looking specifically at the process of decay.
+
+    **Complete Crown:** The top of the trunk and branches appear completely in tact.
+    **Damaged Crown:** THe top of the trunk and branches appear partially missing or otherwise damaged.
+    **Missing Crown:** top of the trunk and branches appear to have fallen off the tree.
+    **Downed:** use this code if data was collected on a snag in a previous year, but that snag has fallen to the ground and is now a log.
+    """)
+                    .font(Font.custom("AvenirLTStd-Roman", size: 14, relativeTo: .caption).italic())
+                    .lineSpacing(2.5)
             }
         } else { ContentUnavailableView("Nothing Selected", systemImage: "square.dashed") }
     }
@@ -734,7 +747,16 @@ class SnagsForm: Plot10Form {
         }, set: { plotForm in
             self.steward = plotForm.steward
             self.date = plotForm.date
-        }))
+        })) {
+            Text("""
+If you completed the Overstory activity for this plot, you may have already collected some data on snags. Here, we collect additional data on each snag, looking specifically at the process of decay.
+
+**Complete Crown:** The top of the trunk and branches appear completely in tact.
+**Damaged Crown:** THe top of the trunk and branches appear partially missing or otherwise damaged.
+**Missing Crown:** top of the trunk and branches appear to have fallen off the tree.
+**Downed:** use this code if data was collected on a snag in a previous year, but that snag has fallen to the ground and is now a log.
+""")
+        }
         .padding(.bottom, 24)
         .padding(.horizontal, 24)
         HStack(alignment: .top, spacing: 25) {
@@ -1391,7 +1413,12 @@ class InvasiveSpeciesForm: Plot10Form {
                 Rectangle()
                     .fill(Color(.secondarySystemFill))
                     .frame(height: 1)
-                Text("**Class 1:** Under 2 feet\n**Class 2:** 2 ft to 4.5 ft\n**Class 3:** Over 4.5 feet\n**Class 4:** Climbing vine")
+                Text("""
+**Class 1:** Under 2 feet
+**Class 2:** 2 ft to 4.5 ft
+**Class 3:** Over 4.5 feet
+**Class 4:** Climbing vine
+""")
                     .font(Font.custom("AvenirLTStd-Roman", size: 14, relativeTo: .caption).italic())
                     .lineSpacing(2.5)
             }
@@ -1405,7 +1432,12 @@ class InvasiveSpeciesForm: Plot10Form {
             self.steward = plotForm.steward
             self.date = plotForm.date
         })) {
-            Text("**Class 1:** Under 2 feet\n**Class 2:** 2 ft to 4.5 ft\n**Class 3:** Over 4.5 feet\n**Class 4:** Climbing vine")
+            Text("""
+**Class 1:** Under 2 feet
+**Class 2:** 2 ft to 4.5 ft
+**Class 3:** Over 4.5 feet
+**Class 4:** Climbing vine
+""")
         }
         .padding(.bottom, 24)
         .padding(.horizontal, 24)
@@ -1607,7 +1639,7 @@ class TreeHealthForm: Plot10Form {
     }
     
     @ViewBuilder var body: some View {
-        FormHeader(title: "Tree Health", form: .init(get: {
+        FormHeader(title: "Forest Health", form: .init(get: {
             self
         }, set: { plotForm in
             self.steward = plotForm.steward
@@ -1760,7 +1792,12 @@ class SaplingsForm: Plot50Form {
                 Rectangle()
                     .fill(Color(.secondarySystemFill))
                     .frame(height: 1)
-                Text("**Class 1:** 1 inches to 1.9 inches\n**Class 2:** 2 inches to  2.9 inches\n**Class 3:** 3 inches to 3.9 inches\n**Class 4:** 4 inches to 4.9 inches")
+                Text("""
+                **Class 1:** 1 inches to 1.9 inches
+                **Class 2:** 2 inches to  2.9 inches
+                **Class 3:** 3 inches to 3.9 inches
+                **Class 4:** 4 inches to 4.9 inches
+                """)
                     .font(Font.custom("AvenirLTStd-Roman", size: 14, relativeTo: .caption).italic())
                     .lineSpacing(2.5)
             }
@@ -1774,7 +1811,12 @@ class SaplingsForm: Plot50Form {
             self.steward = plotForm.steward
             self.date = plotForm.date
         })) {
-            Text("**Class 1:** 1 inches to 1.9 inches\n**Class 2:** 2 inches to  2.9 inches\n**Class 3:** 3 inches to 3.9 inches\n**Class 4:** 4 inches to 4.9 inches")
+            Text("""
+            **Class 1:** 1 inches to 1.9 inches
+            **Class 2:** 2 inches to  2.9 inches
+            **Class 3:** 3 inches to 3.9 inches
+            **Class 4:** 4 inches to 4.9 inches
+            """)
         }
         .padding(.bottom, 24)
         .padding(.horizontal, 24)
@@ -1931,9 +1973,14 @@ class SeedlingsForm: Plot1000Form {
                 Rectangle()
                     .fill(Color(.secondarySystemFill))
                     .frame(height: 1)
-                Text("**Class 1:** 6.0 inches to 11.9 inches Softwood Only\n**Class 2:** 12 inches to 23.9 inches\n**Class 3:** 24 inches to 53.9 inches\n**Class 4:** 54+ inches; less than 1-inch DBH")
-                    .font(Font.custom("AvenirLTStd-Roman", size: 14, relativeTo: .caption).italic())
-                    .lineSpacing(2.5)
+                Text("""
+                **Class 1:** 6 inches to 11.9 inches Softwood Only
+                **Class 2:** 12 inches to 23.9 inches
+                **Class 3:** 24 inches to 53.9 inches
+                **Class 4:** 54+ inches; less than 1-inch DBH
+                """)
+                .font(Font.custom("AvenirLTStd-Roman", size: 14, relativeTo: .caption).italic())
+                .lineSpacing(2.5)
             }
         } else { ContentUnavailableView("Nothing Selected", systemImage: "square.dashed") }
     }
@@ -1984,7 +2031,12 @@ class SeedlingsForm: Plot1000Form {
             self.steward = plotForm.steward
             self.date = plotForm.date
         })) {
-            Text("**Class 1:** 6.0 inches to 11.9 inches Softwood Only\n**Class 2:** 12 inches to 23.9 inches\n**Class 3:** 24 inches to 53.9 inches\n**Class 4:** 54+ inches; less than 1-inch DBH")
+            Text("""
+**Class 1:** 6 inches to 11.9 inches Softwood Only
+**Class 2:** 12 inches to 23.9 inches
+**Class 3:** 24 inches to 53.9 inches
+**Class 4:** 54+ inches; less than 1-inch DBH
+""")
         }
         .padding(.bottom, 24)
         .padding(.horizontal, 24)
@@ -2130,7 +2182,13 @@ class DebrisForm: TransectLineForm {
                 Rectangle()
                     .fill(Color(.secondarySystemFill))
                     .frame(height: 1)
-                Text("Logs greater than 3 inches in diameter\nSee Decay Classifications in activity instructions")
+                Text("""
+**Class 1:** Structure = sound; Bark = intact; Twigs & Branches = fine twigs present
+**Class 2:** Structure = outer sapwood soft; Bark = mostly intact; Twigs & Branches = large twigs present
+**Class 3:** Structure = heartwood mostly sound; Bark = falling off or absent; Twigs & Branches = branches present
+**Class 4:** Structure = heartwood rotten; Bark = detached or absent; Twigs & Branches = branch stubs easily fall off
+**Class 5:** Structure = completely rotten; Bark = detached or absent; Twigs & Branches = mostly absent
+""")
                     .font(Font.custom("AvenirLTStd-Roman", size: 14, relativeTo: .caption).italic())
                     .lineSpacing(2.5)
             }
@@ -2144,7 +2202,13 @@ class DebrisForm: TransectLineForm {
             self.steward = plotForm.steward
             self.date = plotForm.date
         })) {
-            Text("Logs greater than 3 inches in diameter\nSee Decay Classifications in activity instructions")
+            Text("""
+**Class 1:** Structure = sound; Bark = intact; Twigs & Branches = fine twigs present
+**Class 2:** Structure = outer sapwood soft; Bark = mostly intact; Twigs & Branches = large twigs present
+**Class 3:** Structure = heartwood mostly sound; Bark = falling off or absent; Twigs & Branches = branches present
+**Class 4:** Structure = heartwood rotten; Bark = detached or absent; Twigs & Branches = branch stubs easily fall off
+**Class 5:** Structure = completely rotten; Bark = detached or absent; Twigs & Branches = mostly absent
+""")
         }
         .padding(.bottom, 24)
         .padding(.horizontal, 24)
