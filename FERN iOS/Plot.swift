@@ -10,7 +10,8 @@ import MapKit
 import UniformTypeIdentifiers
 import SwiftData
 
-class Plot: Identifiable, ObservableObject, Hashable, Equatable, Codable {
+@Model
+final class Plot: Identifiable, ObservableObject, Hashable, Equatable, Codable {
     convenience init?(url: URL?) {
         guard let url = url else { return nil }
         
@@ -91,9 +92,13 @@ class Plot: Identifiable, ObservableObject, Hashable, Equatable, Codable {
             self.init(from: forms.map({ (csvString: $0.csv, info: $0.info) }), info: info)!
         } else { throw "Could not decode!" }
     }
+    convenience init?(_ plotWrapper: PlotWrapper) {
+        self.init(from: plotWrapper.forms.map({ (csvString: $0.csv, info: $0.info) }), info: plotWrapper.info)
+        self.id = plotWrapper.id
+    }
     
-    let id: UUID = UUID()
-    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+    @Transient var id: UUID = UUID()
+    func hash(into hasher: inout Hasher) { hasher.combine(self.info+self.forms.map({ $0.info+$0.csv }).joined()+self.id.uuidString) }
 
     convenience init?(from values: [(csvString: String, info: String)], info: String) {
         let values = values.map({ FormFrom($0.csvString, info: $0.info) })
@@ -105,25 +110,25 @@ class Plot: Identifiable, ObservableObject, Hashable, Equatable, Codable {
         self.init(forms: v, plotID: info[0], location: .init(latitude: lat, longitude: lon))
     }
     
-    static func == (lhs: Plot, rhs: Plot) -> Bool { lhs.id == rhs.id }
+    static func == (lhs: Plot, rhs: Plot) -> Bool { lhs.info+lhs.forms.map({ $0.info+$0.csv }).joined()+lhs.id.uuidString == rhs.info+rhs.forms.map({ $0.info+$0.csv }).joined()+rhs.id.uuidString }
     
-    @Published var overstory: OverstoryForm
-    @Published var snags: SnagsForm
-    @Published var wildlife: WildlifeForm
-    @Published var hardwoodPhenology: HardwoodPhenologyForm
-    @Published var softwoodPhenology: SoftwoodPhenologyForm
-    @Published var invasiveSpecies: InvasiveSpeciesForm
-    @Published var treeHealth: TreeHealthForm
-//    @Published var trailCameraForm: TrailCameraForm
+     /*@Published*/ var overstory: OverstoryForm
+    /*@Published*/ var snags: SnagsForm
+    /*@Published*/ var wildlife: WildlifeForm
+    /*@Published*/ var hardwoodPhenology: HardwoodPhenologyForm
+    /*@Published*/ var softwoodPhenology: SoftwoodPhenologyForm
+    /*@Published*/ var invasiveSpecies: InvasiveSpeciesForm
+    /*@Published*/ var treeHealth: TreeHealthForm
+//    /*@Published*/ var trailCameraForm: TrailCameraForm
     
-    @Published var saplingsForm: SaplingsForm
+    /*@Published*/ var saplingsForm: SaplingsForm
     
-    @Published var seedlingsForm: SeedlingsForm
+    /*@Published*/ var seedlingsForm: SeedlingsForm
     
-    @Published var debrisForm: DebrisForm
+    /*@Published*/ var debrisForm: DebrisForm
         
-    @Published var plotID: String
-    @Published var location: PlotLocation
+    /*@Published*/ var plotID: String
+    /*@Published*/ var location: PlotLocation
 }
 
 enum PlotCodingKeys: String, CodingKey {
@@ -213,11 +218,28 @@ extension Plot {
         try container.encode(self.seedlingsForm, forKey: .seedlingsForm)
         try container.encode(self.debrisForm, forKey: .debrisForm)
     }
+    
+    var plotWrapper: PlotWrapper {
+        PlotWrapper(info: self.info, forms: self.forms.map(\.formWrapper), id: self.id)
+    }
 }
 
 struct PlotLocation: Codable {
     var latitude: Double
     var longitude: Double
+}
+
+@Model
+class PlotWrapper {
+    init(info: String, forms: [FormWrapper], id: UUID) {
+        self.info = info
+        self.forms = forms
+        self.id = id
+    }
+    
+    var info: String
+    var forms: [FormWrapper]
+    var id: UUID = UUID()
 }
 
 struct PlotCard: View {

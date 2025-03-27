@@ -12,7 +12,10 @@ import SwiftData
 
 @main
 struct FERN_iOSApp: App {
-    @StateObject var appValues: AppValues = AppValues()
+    @Environment(\.modelContext) private var context
+    @Query var plots: [PlotWrapper]
+    
+    @StateObject var appValues = AppValues()
     
     var body: some Scene {
         WindowGroup {
@@ -20,7 +23,7 @@ struct FERN_iOSApp: App {
                 NavigationStack {
                     if appValues.appStatus == nil {
                         if let selectedPlot = appValues.selectedPlot {
-                            PlotView(plot: appValues.plots.first(where: { $0.id == selectedPlot })!)
+                            PlotView(plot: Plot(plots.first(where: { $0.id == selectedPlot })!)!)
                         }
                     } else {
                         LandingPage()
@@ -41,11 +44,29 @@ struct FERN_iOSApp: App {
                 }
             }
             .environmentObject(appValues)
-//            .modelContainer(for: Plot.self)
+            .onChange(of: plots) { oldValue, newValue in
+                print("P")
+//                for plot in oldValue {
+//                    context.delete(plot.plotWrapper)
+//                }
+//                for plot in newValue {
+//                    context.insert(PlotWrapper(info: plot.info, forms: plot.forms.map(\.formWrapper)))
+//                }
+//                do {
+//                    try context.save()
+//                } catch {
+//                    print("NO")
+//                }
+            }
+            .task {
+                appValues.plots = plots.map({ Plot.init($0)! })
+            }
         }
+        .modelContainer(for: PlotWrapper.self)
     }
 }
 
+//@Model
 class AppValues: ObservableObject, Codable {
     init(_ plots: [Plot] = []) { self.plots = plots }
     
@@ -57,9 +78,17 @@ class AppValues: ObservableObject, Codable {
     
     @Published var plots: [Plot] = []
     
-    @Published var appStatus: String? = "welcome"
-    @Published var selectedPlot: UUID?
-    
+    /*@Transient*/ @Published var appStatus: String? = "welcome"
+    /*@Transient*/ @Published var selectedPlot: UUID?
+    /*@Transient*/ @Published var selectedPlotWrapper: Bindable<PlotWrapper>?
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: AppValuesCodingKeys.self)
+        try container.encode(self.plots, forKey: .plots)
+    }
+}
+
+/*
     let treeSpeciesList: [String] = [
         "Alternate Leaf Dogwood",
         "American Basswood",
@@ -138,12 +167,7 @@ class AppValues: ObservableObject, Codable {
         "Witch Hazel",
         "Yellow Birch"
     ]
-    
-    func encode(to encoder: any Encoder) throws {
-        var container = encoder.container(keyedBy: AppValuesCodingKeys.self)
-        try container.encode(self.plots, forKey: .plots)
-    }
-}
+*/
 
 enum AppValuesCodingKeys: String, CodingKey {
     case plots
@@ -153,6 +177,7 @@ extension String: @retroactive Error { }
 
 struct DefaultsKeys { static let plots: [Plot] = [] }
 
+/*
 struct TreeSpeciesMenu: View {
     @EnvironmentObject var appValues: AppValues
     
@@ -182,6 +207,7 @@ struct TreeSpeciesMenu: View {
         .padding(16)
     }
 }
+ */
 
 func addFeetToCoordinate(coord: CLLocationCoordinate2D, northFeet: Double, eastFeet: Double) -> CLLocationCoordinate2D {
     let feetPerDegreeLatitude = 364000.0

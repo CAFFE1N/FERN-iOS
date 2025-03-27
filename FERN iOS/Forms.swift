@@ -7,8 +7,9 @@
 
 import SwiftUI
 import MapKit
+import SwiftData
 
-protocol PlotForm: Identifiable, ObservableObject, Equatable, Codable {
+protocol PlotForm: Identifiable, ObservableObject, Equatable, Codable, Hashable {
     var id: UUID { get }
     
     var steward: String { get set }
@@ -67,6 +68,8 @@ extension PlotForm {
         } else { throw "Could not decode!" }
     }
     
+    func hash(into hasher: inout Hasher) { hasher.combine(self.info+self.csv+self.id.uuidString) }
+    
     var info: String {
         var loc = "N/A"
         if let location = location { loc = "\(location.latitude),\(location.longitude)" }
@@ -84,6 +87,13 @@ extension PlotForm {
         var container = encoder.container(keyedBy: FormCodingKeys.self)
         try container.encode(self.info, forKey: .info)
         try container.encode(self.csv, forKey: .csv)
+    }
+    
+    var formWrapper: FormWrapper {
+        FormWrapper(info: self.info, csv: self.csv)
+    }
+    init?(formWrapper: FormWrapper) {
+        self.init(formWrapper.csv, info: formWrapper.info)
     }
 }
 
@@ -129,7 +139,9 @@ enum FormType: String, CaseIterable {
         }
     }
     
-    func from(_ csvString: String, info: String) -> (any PlotForm)? { self.form.init(csvString, info: info) }
+    func from(_ csvString: String, info: String) -> (any PlotForm)? {
+        self.form.init(csvString, info: info)
+    }
 }
 
 protocol FormData: Hashable, Identifiable, View {
@@ -139,7 +151,9 @@ protocol FormData: Hashable, Identifiable, View {
     var id: UUID { get }
     var csvRow: String { get }
 }
-extension FormData { func hash(into hasher: inout Hasher) { hasher.combine(id) } }
+extension FormData {
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+}
 
 protocol Plot10Form: PlotForm { }
 protocol PhenologyForm: PlotForm { var treeID: String { get set } }
@@ -445,13 +459,15 @@ struct FormView<F: PlotForm>: View {
     }
 }
 
-#Preview("Plot") {
-    @Previewable @StateObject var appValues = AppValues()
-    
-    NavigationStack {
-        PlotView(plot: AppValues().plots.first!)
+@Model
+class FormWrapper {
+    init(info: String, csv: String) {
+        self.info = info
+        self.csv = csv
     }
-    .environmentObject(appValues)
+    
+    var info: String
+    var csv: String
 }
 
 //MARK: Overstory

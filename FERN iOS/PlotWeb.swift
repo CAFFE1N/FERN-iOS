@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct PlotSymbol: View {
     enum Components: String, CaseIterable {

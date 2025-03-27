@@ -8,6 +8,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import PDFKit
+import SwiftData
 
 struct LandingPageButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -116,6 +117,8 @@ Glen says: May your journies on the trail be Prosperous!
 }
 
 struct LandingPage: View {
+    @Query var plots: [PlotWrapper]
+    
     @State var importing: Bool = false
     
     @State var new = false
@@ -127,7 +130,8 @@ struct LandingPage: View {
     @State var message: String? = nil
     
     @EnvironmentObject var appValues: AppValues
-    
+    @Environment(\.modelContext) private var context
+
     //    @ViewBuilder var newPlotSheet: some View {  }
     
     var body: some View {
@@ -152,12 +156,14 @@ struct LandingPage: View {
                                 .padding(16)
                                 .background(.green2, in: RoundedCorner(radius: 16, corners: [.topRight, .topLeft]))
                             VStack(alignment: .leading, spacing: 0) {
-                                ForEach(appValues.plots) { data in
+                                ForEach(plots.map({ Plot($0)! })) { data in
                                     Button {
                                         appValues.appStatus = "loading"
+                                        print(plots.map(\.id), plots.map({ Plot($0)?.id }))
+//                                        appValues.selectedPlotWrapper = Bindable(data)
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                            appValues.appStatus = nil
                                             appValues.selectedPlot = data.id
+                                            appValues.appStatus = nil
                                         }
                                     } label: {
                                         HStack {
@@ -174,7 +180,7 @@ struct LandingPage: View {
                                         Text(data.plotID).padding(16)
                                             .background(Color(.secondarySystemGroupedBackground))
                                     }
-                                    if data.id != appValues.plots.last?.id {
+                                    if data.id != plots.last?.id {
                                         Divider()
                                     }
                                 }
@@ -182,14 +188,17 @@ struct LandingPage: View {
                             .alert("Are you sure you want to delete this plot?", isPresented: $deletionAlert) {
                                 Button("Cancel", role: .cancel) { deletionAlert = false }
                                 Button("Delete", systemImage: "trash", role: .destructive) {
-                                    appValues.appStatus = "loading"
+                                    if let plot = plots.first(where: { $0.id == appValues.selectedPlot }) {
+                                        appValues.appStatus = "loading"
                                         withAnimation(.snappy) {
-                                            appValues.plots.removeAll(where: { $0.id == appValues.selectedPlot })
+                                            context.delete(plot)
+                                            try? context.save()
                                         } completion: {
                                             deletionAlert = false
                                             appValues.selectedPlot = nil
                                             appValues.appStatus = "welcome"
                                         }
+                                    }
                                 }
                             }
                             .buttonStyle(ListRow())
@@ -232,7 +241,7 @@ struct LandingPage: View {
                                 Divider()
                                 Button("Demo Plot", systemImage: "questionmark.square") {
                                     appValues.appStatus = "loading"
-                                    appValues.plots.append(
+                                    context.insert(
                                         Plot(
                                             forms: [
                                                 OverstoryForm(steward: "André", location: nil, data: [
@@ -278,10 +287,10 @@ struct LandingPage: View {
                                                 ])
                                             ],
                                             plotID: "Demo Plot",
-                                            location: .init(latitude: 44.365658, longitude: -69.793207)))
+                                            location: .init(latitude: 44.365658, longitude: -69.793207)).plotWrapper)
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                        appValues.appStatus = nil
-                                        appValues.selectedPlot = appValues.plots.last!.id
+                                        appValues.appStatus = "welcome" //nil
+//                                        appValues.selectedPlot = appValues.plots.last!.id
                                     }
                                 }
                             } label: {
@@ -289,15 +298,15 @@ struct LandingPage: View {
                                     .frame(maxWidth: .infinity)
                                     .padding(16)
                                     .background {
-                                        RoundedCorner(corners: appValues.plots.isEmpty ? [.bottomLeft, .bottomRight] : .allCorners)
+                                        RoundedCorner(corners: plots.isEmpty ? [.bottomLeft, .bottomRight] : .allCorners)
                                             .fill(Color(.secondarySystemGroupedBackground))
-                                        RoundedCorner(corners: appValues.plots.isEmpty ? [.bottomLeft, .bottomRight] : .allCorners)
+                                        RoundedCorner(corners: plots.isEmpty ? [.bottomLeft, .bottomRight] : .allCorners)
                                             .stroke(Color(.systemFill))
                                             .padding(.horizontal, 0.5)
                                     }
                             }
                             .buttonStyle(ListRow())
-                            .padding(.top, appValues.plots.isEmpty ? 0 : nil)
+                            .padding(.top, plots.isEmpty ? 0 : nil)
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -325,11 +334,11 @@ struct LandingPage: View {
                 .frame(height: !new ? 0 : nil, alignment: .top)
                 VStack(alignment: .leading, spacing: 16) {
                     Button {
-                        appValues.plots.append(plot)
+                        context.insert(plot.plotWrapper)
                         appValues.appStatus = "loading"
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            appValues.appStatus = nil
-                            appValues.selectedPlot = appValues.plots.last!.id
+                            appValues.appStatus = "welcome" //nil
+//                            appValues.selectedPlot = appValues.plots.last!.id
                         }
                     } label: {
                         Text("Create")
@@ -387,5 +396,6 @@ struct LandingPage: View {
             .ignoresSafeArea()
         }
         .toolbarVisibility(.hidden, for: .navigationBar)
+        .modelContainer(for: PlotWrapper.self)
     }
 }
