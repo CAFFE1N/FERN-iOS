@@ -8,6 +8,7 @@
 import SwiftUI
 import MapKit
 import CoreLocation
+import SwiftData
 
 @main
 struct FERN_iOSApp: App {
@@ -25,7 +26,7 @@ struct FERN_iOSApp: App {
                         LandingPage()
                     }
                 }
-                if appValues.appStatus == .loading {
+                if appValues.appStatus == "loading" {
                     Rectangle()
                         .fill(Color.black.opacity(0.25))
                         .ignoresSafeArea()
@@ -40,59 +41,23 @@ struct FERN_iOSApp: App {
                 }
             }
             .environmentObject(appValues)
-            .onChange(of: appValues.plots) { oldValue, newValue in
-                //                print()
-            }
+//            .modelContainer(for: Plot.self)
         }
     }
 }
 
-struct DefaultsKeys { static let plots: [Plot10] = [] }
-
-struct TreeSpeciesMenu: View {
-    @EnvironmentObject var appValues: AppValues
+class AppValues: ObservableObject, Codable {
+    init(_ plots: [Plot] = []) { self.plots = plots }
     
-    @State var temp: String = ""
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            TextField("Search", text: $temp)
-                .onSubmit {
-                    temp = appValues.treeSpeciesList.filter({ temp.isEmpty || $0.lowercased().contains(temp.lowercased()) }).first ?? temp
-                }
-            Divider()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    ForEach(appValues.treeSpeciesList.filter({ temp.isEmpty || $0.lowercased().contains(temp.lowercased()) }), id: \.self) { i in
-                        Button { temp = i } label: {
-                            Text(i)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                        if i != appValues.treeSpeciesList.filter({ temp.isEmpty || $0.lowercased().contains(temp.lowercased()) }).last {
-                            Divider()
-                        }
-                    }
-                }
-            }
-        }
-        .padding(16)
-    }
-}
-
-class AppValues: ObservableObject {
-    init() {
-//        if UserDefaults.standard.dictionaryRepresentation().keys.contains("group.fern.app") {
-//            print("already joined")
-//        } else {
-            UserDefaults.standard.addSuite(named: "group.fern.app")
-//        }
-        print(UserDefaults.standard.dictionaryRepresentation().keys)
+    required convenience init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: AppValuesCodingKeys.self)
+        let plots = try values.decode([Plot].self, forKey: .plots)
+        self.init(plots)
     }
     
-    @Published var plots: [Plot10] = []
+    @Published var plots: [Plot] = []
     
-    enum AppStatus: String, CaseIterable { case loading, welcome }
-    @Published var appStatus: AppStatus? = .welcome
+    @Published var appStatus: String? = "welcome"
     @Published var selectedPlot: UUID?
     
     let treeSpeciesList: [String] = [
@@ -173,41 +138,48 @@ class AppValues: ObservableObject {
         "Witch Hazel",
         "Yellow Birch"
     ]
-}
-
-struct SideSheet<Sheet: View>: ViewModifier {
-    @Binding var isPresented: Bool
-    @ViewBuilder var sheet: Sheet
     
-    func body(content: Content) -> some View {
-        GeometryReader { geometry in
-            HStack(spacing: 0) {
-                ZStack {
-                    if !isPresented {
-                        content
-                            .transition(.offset(x: -150).animation(.smooth))
-                    } else if isPresented {
-                        content.disabled(true)
-                            .opacity(0.6)
-                            .blur(radius: 5)
-                            .onTapGesture { withAnimation { isPresented = false } }
-                            .transition(.offset(x: 150).animation(.smooth))
-                    }
-                }
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                if isPresented {
-                    sheet
-                        .frame(width: 400)
-                }
-            }
-            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .trailing)
-        }
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: AppValuesCodingKeys.self)
+        try container.encode(self.plots, forKey: .plots)
     }
 }
 
-extension View {
-    func sideSheet(isPresented: Binding<Bool>, sheet: @escaping () -> some View) -> some View {
-        modifier(SideSheet(isPresented: isPresented) { sheet() })
+enum AppValuesCodingKeys: String, CodingKey {
+    case plots
+}
+
+extension String: @retroactive Error { }
+
+struct DefaultsKeys { static let plots: [Plot] = [] }
+
+struct TreeSpeciesMenu: View {
+    @EnvironmentObject var appValues: AppValues
+    
+    @State var temp: String = ""
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            TextField("Search", text: $temp)
+                .onSubmit {
+                    temp = appValues.treeSpeciesList.filter({ temp.isEmpty || $0.lowercased().contains(temp.lowercased()) }).first ?? temp
+                }
+            Divider()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    ForEach(appValues.treeSpeciesList.filter({ temp.isEmpty || $0.lowercased().contains(temp.lowercased()) }), id: \.self) { i in
+                        Button { temp = i } label: {
+                            Text(i)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        if i != appValues.treeSpeciesList.filter({ temp.isEmpty || $0.lowercased().contains(temp.lowercased()) }).last {
+                            Divider()
+                        }
+                    }
+                }
+            }
+        }
+        .padding(16)
     }
 }
 

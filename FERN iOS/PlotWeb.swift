@@ -60,10 +60,10 @@ struct PlotSymbol: View {
 }
 
 struct PlotDataWeb: View {
-    @ObservedObject var plot: Plot10
+    @ObservedObject var plot: Plot
     
     struct Card10: View {
-        @ObservedObject var plot: Plot10
+        @ObservedObject var plot: Plot
         
         var body: some View {
             VStack(spacing: 0) {
@@ -182,7 +182,7 @@ struct PlotDataWeb: View {
     }
     
     struct Card50: View {
-        @ObservedObject var plot: Plot10
+        @ObservedObject var plot: Plot
         
         var body: some View {
             VStack(spacing: 0) {
@@ -217,7 +217,7 @@ struct PlotDataWeb: View {
     }
     
     struct Card1000: View {
-        @ObservedObject var plot: Plot10
+        @ObservedObject var plot: Plot
         
         var body: some View {
             VStack(spacing: 0) {
@@ -252,7 +252,7 @@ struct PlotDataWeb: View {
     }
     
     struct CardTransectLine: View {
-        @ObservedObject var plot: Plot10
+        @ObservedObject var plot: Plot
         
         var body: some View {
             VStack(spacing: 0) {

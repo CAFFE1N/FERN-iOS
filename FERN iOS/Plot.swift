@@ -8,8 +8,9 @@
 import SwiftUI
 import MapKit
 import UniformTypeIdentifiers
+import SwiftData
 
-class Plot10: Identifiable, ObservableObject, Hashable, Equatable {
+class Plot: Identifiable, ObservableObject, Hashable, Equatable, Codable {
     convenience init?(url: URL?) {
         guard let url = url else { return nil }
         
@@ -71,6 +72,25 @@ class Plot10: Identifiable, ObservableObject, Hashable, Equatable {
 
         self.debrisForm = forms.first(where: { $0 is DebrisForm }) as! DebrisForm
     }
+    required convenience init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: PlotCodingKeys.self)
+        let info = try values.decode(String.self, forKey: .info)
+        let forms: [any PlotForm] = [
+            try values.decode(OverstoryForm.self, forKey: .overstory),
+            try values.decode(SnagsForm.self, forKey: .snags),
+            try values.decode(WildlifeForm.self, forKey: .wildlife),
+            try values.decode(HardwoodPhenologyForm.self, forKey: .hardwoodPhenology),
+            try values.decode(SoftwoodPhenologyForm.self, forKey: .softwoodPhenology),
+            try values.decode(InvasiveSpeciesForm.self, forKey: .invasiveSpecies),
+            try values.decode(TreeHealthForm.self, forKey: .treeHealth),
+            try values.decode(SaplingsForm.self, forKey: .saplingsForm),
+            try values.decode(SeedlingsForm.self, forKey: .seedlingsForm),
+            try values.decode(DebrisForm.self, forKey: .debrisForm)
+        ]
+        if let _ = Plot(from: forms.map({ (csvString: $0.csv, info: $0.info) }), info: info) {
+            self.init(from: forms.map({ (csvString: $0.csv, info: $0.info) }), info: info)!
+        } else { throw "Could not decode!" }
+    }
     
     let id: UUID = UUID()
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
@@ -85,22 +105,7 @@ class Plot10: Identifiable, ObservableObject, Hashable, Equatable {
         self.init(forms: v, plotID: info[0], location: .init(latitude: lat, longitude: lon))
     }
     
-    static func == (lhs: Plot10, rhs: Plot10) -> Bool { lhs.id == rhs.id }
-    
-    var forms: [any PlotForm] {
-        [
-            overstory,
-            snags,
-            wildlife,
-            hardwoodPhenology,
-            softwoodPhenology,
-            invasiveSpecies,
-            treeHealth,
-            saplingsForm,
-            seedlingsForm,
-            debrisForm
-        ]
-    }
+    static func == (lhs: Plot, rhs: Plot) -> Bool { lhs.id == rhs.id }
     
     @Published var overstory: OverstoryForm
     @Published var snags: SnagsForm
@@ -120,13 +125,62 @@ class Plot10: Identifiable, ObservableObject, Hashable, Equatable {
     @Published var plotID: String
     @Published var location: PlotLocation
 }
-extension Plot10 {
+
+enum PlotCodingKeys: String, CodingKey {
+    case info
+    
+    case overstory,
+         snags,
+         wildlife,
+         hardwoodPhenology,
+         softwoodPhenology,
+         invasiveSpecies,
+         treeHealth,
+         saplingsForm,
+         seedlingsForm,
+         debrisForm
+    
+    var FormType: Optional<any PlotForm.Type> {
+        switch self {
+        case .info: nil
+        case .overstory: OverstoryForm.self
+        case .snags: SnagsForm.self
+        case .wildlife: WildlifeForm.self
+        case .hardwoodPhenology: HardwoodPhenologyForm.self
+        case .softwoodPhenology: SoftwoodPhenologyForm.self
+        case .invasiveSpecies: InvasiveSpeciesForm.self
+        case .treeHealth: TreeHealthForm.self
+        case .saplingsForm: SaplingsForm.self
+        case .seedlingsForm: SeedlingsForm.self
+        case .debrisForm: DebrisForm.self
+        }
+    }
+    
+    static var allCases: [PlotCodingKeys] {
+        [.overstory, .snags, .wildlife, .hardwoodPhenology, .softwoodPhenology, .invasiveSpecies, .treeHealth, .saplingsForm, .seedlingsForm, .debrisForm]
+    }
+}
+
+extension Plot {
     var info: String {
         """
 \(self.plotID)
 \(self.location.latitude),\(self.location.longitude)
 """
     }
+    
+    var forms: [any PlotForm] {[
+        self.overstory,
+        self.snags,
+        self.wildlife,
+        self.hardwoodPhenology,
+        self.softwoodPhenology,
+        self.invasiveSpecies,
+        self.treeHealth,
+        self.saplingsForm,
+        self.seedlingsForm,
+        self.debrisForm
+    ]}
     
     func wrapToFolder() -> URL {
         let fileManager = FileManager.default
@@ -144,6 +198,26 @@ extension Plot10 {
         }
         return tempDir
     }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: PlotCodingKeys.self)
+        try container.encode(self.info, forKey: .info)
+        try container.encode(self.overstory, forKey: .overstory)
+        try container.encode(self.snags, forKey: .snags)
+        try container.encode(self.wildlife, forKey: .wildlife)
+        try container.encode(self.hardwoodPhenology, forKey: .hardwoodPhenology)
+        try container.encode(self.softwoodPhenology, forKey: .softwoodPhenology)
+        try container.encode(self.invasiveSpecies, forKey: .invasiveSpecies)
+        try container.encode(self.treeHealth, forKey: .treeHealth)
+        try container.encode(self.saplingsForm, forKey: .saplingsForm)
+        try container.encode(self.seedlingsForm, forKey: .seedlingsForm)
+        try container.encode(self.debrisForm, forKey: .debrisForm)
+    }
+}
+
+struct PlotLocation: Codable {
+    var latitude: Double
+    var longitude: Double
 }
 
 struct PlotCard: View {
@@ -192,7 +266,7 @@ struct PlotCard: View {
 
 struct PlotView: View {
     @EnvironmentObject var appValues: AppValues
-    @ObservedObject var plot: Plot10
+    @ObservedObject var plot: Plot
     
     enum Selected {
         case map
@@ -336,9 +410,9 @@ struct PlotView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    appValues.appStatus = .loading
+                    appValues.appStatus = "loading"
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        appValues.appStatus = .welcome
+                        appValues.appStatus = "welcome"
                     }
                 } label: {
                     Image(systemName: "house")

@@ -119,7 +119,7 @@ struct LandingPage: View {
     @State var importing: Bool = false
     
     @State var new = false
-    @State var plot: Plot10 = Plot10(plotID: "Plot \(Date().toString(withFormat: "dd.MM.yyyy"))", location: .init(latitude: 44.365658, longitude: -69.793207))
+    @State var plot: Plot = Plot(plotID: "Plot \(Date().toString(withFormat: "dd.MM.yyyy"))", location: .init(latitude: 44.365658, longitude: -69.793207))
     
     @State var filePath: URL? = nil
     
@@ -154,7 +154,7 @@ struct LandingPage: View {
                             VStack(alignment: .leading, spacing: 0) {
                                 ForEach(appValues.plots) { data in
                                     Button {
-                                        appValues.appStatus = .loading
+                                        appValues.appStatus = "loading"
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                                             appValues.appStatus = nil
                                             appValues.selectedPlot = data.id
@@ -182,13 +182,13 @@ struct LandingPage: View {
                             .alert("Are you sure you want to delete this plot?", isPresented: $deletionAlert) {
                                 Button("Cancel", role: .cancel) { deletionAlert = false }
                                 Button("Delete", systemImage: "trash", role: .destructive) {
-                                    appValues.appStatus = .loading
+                                    appValues.appStatus = "loading"
                                         withAnimation(.snappy) {
                                             appValues.plots.removeAll(where: { $0.id == appValues.selectedPlot })
                                         } completion: {
                                             deletionAlert = false
                                             appValues.selectedPlot = nil
-                                            appValues.appStatus = .welcome
+                                            appValues.appStatus = "welcome"
                                         }
                                 }
                             }
@@ -204,36 +204,36 @@ struct LandingPage: View {
                                 switch result {
                                 case .success(let success): filePath = success
                                     print(success)
-                                    if let p = Plot10(url: success) {
+                                    if let p = Plot(url: success) {
                                         plot = p
                                         new = true
                                     } else {
-                                        appValues.appStatus = .welcome
+                                        appValues.appStatus = "welcome"
                                         message = "We had trouble reading the info in this file."
                                     }
                                 case .failure(let failure): print(failure)
                                 }
-                                appValues.appStatus = .welcome
+                                appValues.appStatus = "welcome"
                             }
                             .alert(message ?? "Error!", isPresented: .init(get: { message != nil }, set: { _ in message = nil })) {
                                 Button("OK") { message = nil }
                             }
                             Menu {
                                 Button("Empty Plot", systemImage: "square") {
-                                    plot = Plot10(plotID: "Plot \(Date().toString(withFormat: "dd.MM.yyyy"))", location: .init(latitude: 44.365658, longitude: -69.793207))
+                                    plot = Plot(plotID: "Plot \(Date().toString(withFormat: "dd.MM.yyyy"))", location: .init(latitude: 44.365658, longitude: -69.793207))
                                     withAnimation(.snappy) {
                                         new = true
                                     }
                                 }
                                 Button("Import From Folder", systemImage: "folder") {
-                                    appValues.appStatus = .loading
+                                    appValues.appStatus = "loading"
                                     importing = true
                                 }
                                 Divider()
                                 Button("Demo Plot", systemImage: "questionmark.square") {
-                                    appValues.appStatus = .loading
+                                    appValues.appStatus = "loading"
                                     appValues.plots.append(
-                                        Plot10(
+                                        Plot(
                                             forms: [
                                                 OverstoryForm(steward: "André", location: nil, data: [
                                                     .init(treeID: "001", treeSpecies: "Pine", treeStatus: .live, dbh: 5, height: 40),
@@ -326,7 +326,7 @@ struct LandingPage: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Button {
                         appValues.plots.append(plot)
-                        appValues.appStatus = .loading
+                        appValues.appStatus = "loading"
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                             appValues.appStatus = nil
                             appValues.selectedPlot = appValues.plots.last!.id

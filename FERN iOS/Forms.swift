@@ -8,12 +8,7 @@
 import SwiftUI
 import MapKit
 
-struct PlotLocation {
-    var latitude: Double
-    var longitude: Double
-}
-
-protocol PlotForm: Identifiable, ObservableObject, Equatable {
+protocol PlotForm: Identifiable, ObservableObject, Equatable, Codable {
     var id: UUID { get }
     
     var steward: String { get set }
@@ -32,6 +27,11 @@ protocol PlotForm: Identifiable, ObservableObject, Equatable {
     var body: Body { get }
     
     init(id: UUID, steward: String, date: Date, location: PlotLocation?, data: [D], selected: UUID?)
+}
+
+enum FormCodingKeys: String, CodingKey {
+    case info
+    case csv
 }
 
 extension PlotForm {
@@ -58,6 +58,15 @@ extension PlotForm {
         self.init(id: UUID(), steward: info[0], date: date, location: location, data: data.filter({ $0 != nil }) as! [D], selected: nil)
     }
     
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: FormCodingKeys.self)
+        let info = try values.decode(String.self, forKey: .info)
+        let csv = try values.decode(String.self, forKey: .csv)
+        if let _ = FormFrom(csv, info: info) {
+            self.init(csv, info: info)!
+        } else { throw "Could not decode!" }
+    }
+    
     var info: String {
         var loc = "N/A"
         if let location = location { loc = "\(location.latitude),\(location.longitude)" }
@@ -70,10 +79,17 @@ extension PlotForm {
         ].joined(separator: "\n")
     }
     var csv: String { self.data.map(\.csvRow).joined(separator: "\n") }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: FormCodingKeys.self)
+        try container.encode(self.info, forKey: .info)
+        try container.encode(self.csv, forKey: .csv)
+    }
 }
+
 func FormFrom(_ csvString: String, info i: String) -> (any PlotForm)? {
     let info = i.split(separator: "\n", omittingEmptySubsequences: true).map(\.description)
-    guard info.count == 4, let form = FormType(rawValue: info[3]) else { return nil }
+    guard info.count >= 4, let form = FormType(rawValue: info[3]) else { return nil }
     
     return form.from(csvString, info: i)
 }
@@ -113,9 +129,7 @@ enum FormType: String, CaseIterable {
         }
     }
     
-    func from(_ csvString: String, info: String) -> (any PlotForm)? {
-        self.form.init(csvString, info: info)
-    }
+    func from(_ csvString: String, info: String) -> (any PlotForm)? { self.form.init(csvString, info: info) }
 }
 
 protocol FormData: Hashable, Identifiable, View {
@@ -125,9 +139,7 @@ protocol FormData: Hashable, Identifiable, View {
     var id: UUID { get }
     var csvRow: String { get }
 }
-extension FormData {
-    func hash(into hasher: inout Hasher) { hasher.combine(id) }
-}
+extension FormData { func hash(into hasher: inout Hasher) { hasher.combine(id) } }
 
 protocol Plot10Form: PlotForm { }
 protocol PhenologyForm: PlotForm { var treeID: String { get set } }
@@ -418,7 +430,7 @@ struct FormView<F: PlotForm>: View {
                 if let selected = form.selected {
                     withAnimation(.snappy) {
                         form.selected = nil
-                        appValues.appStatus = .loading
+                        appValues.appStatus = "loading"
                     } completion: {
                         withAnimation(.snappy) {
                             form.data.removeAll(where: { $0.id == selected })
