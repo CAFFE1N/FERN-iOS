@@ -2184,9 +2184,13 @@ class DebrisForm: TransectLineForm {
                     .frame(height: 1)
                 Text("""
 **Class 1:** Structure = sound; Bark = intact; Twigs & Branches = fine twigs present
+
 **Class 2:** Structure = outer sapwood soft; Bark = mostly intact; Twigs & Branches = large twigs present
+
 **Class 3:** Structure = heartwood mostly sound; Bark = falling off or absent; Twigs & Branches = branches present
+
 **Class 4:** Structure = heartwood rotten; Bark = detached or absent; Twigs & Branches = branch stubs easily fall off
+
 **Class 5:** Structure = completely rotten; Bark = detached or absent; Twigs & Branches = mostly absent
 """)
                     .font(Font.custom("AvenirLTStd-Roman", size: 14, relativeTo: .caption).italic())
@@ -2204,9 +2208,13 @@ class DebrisForm: TransectLineForm {
         })) {
             Text("""
 **Class 1:** Structure = sound; Bark = intact; Twigs & Branches = fine twigs present
+
 **Class 2:** Structure = outer sapwood soft; Bark = mostly intact; Twigs & Branches = large twigs present
+
 **Class 3:** Structure = heartwood mostly sound; Bark = falling off or absent; Twigs & Branches = branches present
+
 **Class 4:** Structure = heartwood rotten; Bark = detached or absent; Twigs & Branches = branch stubs easily fall off
+
 **Class 5:** Structure = completely rotten; Bark = detached or absent; Twigs & Branches = mostly absent
 """)
         }
